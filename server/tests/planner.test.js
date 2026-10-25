@@ -1,11 +1,25 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { generateHouse } from "../../src/lib/planner/houseGenerator.js";
+import { demoPlacements } from "../../src/lib/planner/demo.js";
+import { importFloorPlan } from "../../src/lib/planner/importFloorPlan.js";
+import { warningsFor } from "../../src/lib/planner/collisions.js";
+import fs from "node:fs";
 import {
   listingSnapshot,
   readSession,
   writeSession,
 } from "../../src/lib/planner/listingSnapshot.js";
+test("demo furniture stays within generated and sample plans without collisions or blocked doors", () => {
+  const sample = importFloorPlan(JSON.parse(fs.readFileSync(new URL("../../src/lib/planner/sampleFloorPlan.json",import.meta.url))));
+  for (const house of [generateHouse({sqft:1500,beds:3,baths:2,seed:"demo"}),sample]) {
+    const placed = demoPlacements(house);
+    assert.ok(placed.length >= 3);
+    assert.deepEqual(warningsFor(placed,house.floors[0]),[]);
+    const retained = {...placed[0],id:"user-item"};
+    assert.deepEqual(warningsFor([retained,...demoPlacements(house,[retained])],house.floors[0]),[]);
+  }
+});
 test("custom and listing dimensions stay fixed and keep exterior windows and doors", () => {
   const custom = generateHouse({
     customRooms: [

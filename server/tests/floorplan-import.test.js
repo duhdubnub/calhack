@@ -8,11 +8,21 @@ import { wallSections } from "../../src/lib/planner/detectedWalls.js";
 import { wallSegments, warningsFor } from "../../src/lib/planner/collisions.js";
 import { validateFloorPlan } from "../../src/lib/planner/calibration.js";
 import { resolvePlannerHouse } from "../../src/lib/planner/planHouse.js";
-import { createCubicasaConverter, runWorker, ConversionError } from "../floorplan/converters/cubicasa.js";
+import { createCubicasaConverter, cubicasaSettings, runWorker, ConversionError } from "../floorplan/converters/cubicasa.js";
 import { createConverterRegistry } from "../floorplan/converters/index.js";
 import { createFloorPlanRouter } from "../floorplan/routes.js";
 
 const sample = JSON.parse(await fs.readFile(new URL("../../src/lib/planner/sampleFloorPlan.json",import.meta.url),"utf8"));
+test("CubiCasa uses bundled source and never treats the pose backbone as trained floor-plan weights", () => {
+  const settings = cubicasaSettings({});
+  assert.match(settings.dir.replaceAll("\\", "/"), /floorplan\/cubicasa5k\/?$/);
+  assert.ok(!settings.weights || settings.weights.endsWith("model_best_val_loss_var.pkl"));
+  const explicit = cubicasaSettings({ CUBICASA_DIR: "missing-model-source", CUBICASA_WEIGHTS: "missing-checkpoint", CUBICASA_PYTHON: "custom-python" });
+  assert.equal(explicit.dir, "missing-model-source");
+  assert.equal(explicit.weights, "missing-checkpoint");
+  assert.equal(explicit.python, "custom-python");
+  assert.equal(explicit.configured, false);
+});
 test("notebook feet import preserves real wall geometry, door clearance, window sill and reload", () => {
   const model = importFloorPlan(sample), f = model.floors[0];
   assert.equal(f.walls.length,5);

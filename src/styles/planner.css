@@ -1,12 +1,12 @@
 .planner-page {
-  padding: 24px;
+  padding: 20px 24px;
   max-width: 1800px;
   margin: auto;
 }
 .planner-header {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 .planner-header h1 {
@@ -22,13 +22,14 @@
 .planner-header > div {
   flex: 1;
   min-width: 200px;
+  order: -1;
 }
 .planner-toolbar {
   display: flex;
   align-items: center;
-  gap: 12px 20px;
+  gap: 10px 16px;
   flex-wrap: wrap;
-  margin: 20px 0;
+  margin: 14px 0;
 }
 .planner-toolbar > label {
   display: inline-flex;
@@ -55,7 +56,7 @@
   border: 1px solid #d9ded8;
   border-radius: 16px;
   padding: 16px;
-  max-height: 680px;
+  max-height: var(--planner-height, 680px);
   overflow: auto;
 }
 .planner-panel h2 {
@@ -81,7 +82,7 @@
   min-width: 0;
 }
 .planner-canvas {
-  height: 680px;
+  height: var(--planner-height, 680px);
   min-width: 0;
   position: relative;
   border-radius: 16px;
@@ -180,13 +181,13 @@
 }
 
 .planner-workspace {
-  grid-template-columns: 320px minmax(0, 1fr) 280px;
+  grid-template-columns: 240px minmax(0, 1fr) 240px;
 }
 .library-panel {
   display: flex;
   flex-direction: column;
-  height: 680px;
-  gap: 20px;
+  height: var(--planner-height, 680px);
+  gap: 16px;
 }
 .furniture-library {
   display: flex;
@@ -434,4 +435,61 @@
   background: white;
   border-radius: 6px;
   margin: 6px 0;
+}
+
+.planner-page { --planner-height: clamp(520px, calc(100dvh - 250px), 760px); }
+.planner-page button { min-height: 38px; padding: 9px 14px; font-size: 13px; }
+.planner-page h2 { font-size: 1.35rem; }
+.planner-page h3 { font-size: 1.1rem; }
+.planner-header h1 { font-size: clamp(1.5rem, 2.8vw, 2rem); overflow-wrap: anywhere; }
+.planner-header p { font-size: 13px; }
+.planner-header > p[role="status"] { color: var(--muted); font-size: 12px; }
+.planner-header > a { font-size: 13px; padding: 8px; }
+.planner-panel { min-width: 0; scrollbar-width: thin; scrollbar-gutter: stable; }
+.planner-panel input, .planner-panel select, .furniture-dialog input, .furniture-dialog select {
+  min-height: 42px; padding: 9px 10px; border: 1px solid #ccd6ce;
+  border-radius: 8px; background: #fff; color: inherit; font: inherit;
+}
+.planner-panel label { font-size: 13px; font-weight: 500; }
+.planner-panel p, .planner-panel li { font-size: 13px; }
+.catalog-list article { padding: 12px 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.catalog-list article > div { flex: 1 0 100%; min-width: 0; overflow-wrap: anywhere; }
+.catalog-list strong { font-size: 13px; }
+.catalog-list small { color: var(--muted); line-height: 1.6; }
+.catalog-list button { padding: 6px 9px; min-height: 32px; font-size: 11px; }
+.catalog-list button:not(:first-of-type), .panel-actions button {
+  background: #edf3ee; color: #275a48; border: 1px solid #d3dfd5;
+}
+.catalog-list button:hover, .panel-actions button:hover { filter: brightness(.95); }
+.furniture-warnings { padding-top: 16px; border-top: 1px solid var(--border); }
+.furniture-warnings ul { padding-left: 18px; }
+.furniture-warnings li + li { margin-top: 6px; }
+.selected-item-actions {
+  position: absolute; top: 12px; left: 12px; right: 12px; z-index: 3;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  padding: 12px; border: 1px solid #cddbd0; border-radius: 12px;
+  background: #fffffff2; box-shadow: 0 4px 20px #234c3c12;
+}
+.selected-item-actions strong { flex: 1 1 120px; font-size: 13px; overflow-wrap: anywhere; }
+.selected-item-actions span { font-size: 12px; color: var(--muted); }
+.selected-item-actions small { flex-basis: 100%; font-size: 11px; color: var(--muted); }
+.selected-item-actions button { min-height: 32px; padding: 5px 9px; font-size: 11px; }
+.selected-item-actions .danger-action { color: #a13b32; background: #faeeeb; }
+.planner-summary { margin-top: 12px; font-size: 12px; }
+@media (min-width: 768px) and (max-width: 1150px) {
+  .planner-workspace { grid-template-columns: 220px minmax(0, 1fr); }
+  .furniture-panel { grid-column: 1 / -1; max-height: 420px; }
+}
+@media (max-width: 767px) {
+  .planner-page { padding: 12px 12px 88px; }
+  .planner-header > div { flex-basis: 100%; min-width: 0; }
+  .planner-header > a { padding-inline: 0; }
+  .planner-toolbar { gap: 8px; }
+  .planner-toolbar > label { gap: 8px; font-size: 12px; flex-wrap: wrap; }
+  .planner-toolbar select { max-width: 100%; min-width: 0; }
+  .planner-page .planner-panel { height: auto; max-height: 55dvh; grid-column: auto; }
+  .planner-canvas { height: 58dvh; min-height: 360px; }
+  .mobile-panel-tabs button { padding: 8px; font-size: 12px; }
+  .selected-item-actions { top: 8px; left: 8px; right: 8px; padding: 9px; }
+  .dimension-pair { grid-template-columns: 1fr; }
 }

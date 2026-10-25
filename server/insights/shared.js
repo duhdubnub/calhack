@@ -49,6 +49,7 @@ export function moduleHandler(name, validate, load, { ttl = 86400000 } = {}) {
       [name, config.enableApify, params],
       async () => ({ ...(await load(params)), usingFixtures: false }),
       ttl,
+      { bypass: q.retry === "1" },
     );
   };
 }

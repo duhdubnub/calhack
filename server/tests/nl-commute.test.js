@@ -32,6 +32,20 @@ test('bounded sessions verify next batch, isolate clients, prevent parallel batc
  let release; const blocked=createCommuteSearch({batch:()=>new Promise(r=>{release=r;})}); const pending=blocked.start(homes,c,'x'); await assert.rejects(blocked.start(homes,c,'x'),/already/); release([]); await pending;
  const fail=createCommuteSearch({batch:async()=>{throw Error('cap');}}); const p=await fail.start(homes,c,'x'); assert.equal(p.commute.checked,0); assert.equal(p.commute.unchecked,21); assert.match(p.commute.error,/cap/);
 });
+test('Actor batches separate departure times and send root-level date and time', async () => {
+ const inputs=[];
+ const provider=createDirectionsBatch({cache:memory(),fixtureMode:()=>false,enabled:()=>true,runner:async(_id,input)=>{
+  inputs.push(input);
+  assert.match(input.travelDate,/^\d{4}-\d{2}-\d{2}$/);
+  assert.equal(input.timeMode,'depart_at');
+  assert.ok(input.routes.every(route=>!('departureTime' in route)));
+  return input.routes.map(route=>({label:route.label,status:'OK',durationSeconds:600}));
+ }});
+ const p={lat:37.77,lng:-122.42,workLat:37.79,workLng:-122.4};
+ const results=await provider(['08:00','17:30','03:00'].map(departAt=>({...p,departAt})));
+ assert.deepEqual(inputs.map(input=>input.travelTime),['08:00','17:30','03:00']);
+ assert.ok(results.every(result=>result.minutes===10));
+});
 test('described search expands source limits only for commute and preserves old criteria',async()=> {
  let input; const search=createDescribedSearch({searchProvider:async c=>{input=c;return {listings:homes,notes:[],usingFixtures:false};},commute:createCommuteSearch({batch:async ps=>ps.map(()=>({minutes:20}))})});
  await search({criteria:{location:'Austin',limit:12},extras:{}},'a'); assert.equal(input.limit,12);

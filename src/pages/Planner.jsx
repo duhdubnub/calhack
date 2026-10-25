@@ -11,7 +11,6 @@ import "../styles/floorplan.css";
 import RoomPanel from "../components/planner/RoomPanel";
 import { demoPlacements } from "../lib/planner/demo";
 import AddFurniture from "../components/planner/AddFurniture";
-import AgentConnect from '../components/planner/AgentConnect';
 import { plannerApi, localRead, localWrite } from "../lib/planner/persistence";
 import FurnitureModel from "../components/planner/FurnitureModel";
 import FurniturePanel from "../components/planner/FurniturePanel";
@@ -204,7 +203,7 @@ function PlannerHome() {
       setOverrides(saved?.roomOverrides || {});
       setFloorPlan(validateFloorPlan(saved?.floorPlan));
       const defs = [...catalog, ...lib];
-      const placed = (
+      let placed = (
         saved?.placements ||
         (homeId === "demo"
           ? demoPlacements(generateHouse({ ...demo, seed: "demo" }))
@@ -224,6 +223,14 @@ function PlannerHome() {
                 color: "#c86c50",
               },
         );
+      if (homeId === "demo") {
+        const demoHouse = resolvePlannerHouse(generateHouse({ ...demo, seed: "demo" }, saved?.roomOverrides || {}), validateFloorPlan(saved?.floorPlan), []);
+        const demoFloor = demoHouse.floors[0];
+        if (warningsFor(placed.filter(p=>p.level === demoFloor.level), demoFloor).some(w=>w.ids.some(id=>id.startsWith("demo-item-")))) {
+          const customItems = placed.filter(p=>!p.id.startsWith("demo-item-"));
+          placed = [...customItems, ...demoPlacements(demoHouse, customItems)];
+        }
+      }
       setHistory({ past: [], present: placed, future: [] });
       setReady(true);
     }
@@ -439,7 +446,7 @@ function PlannerHome() {
   }, [homeId, ready]);
   useEffect(() => {
     function key(e) {
-      if (e.target.closest("input,textarea,select,dialog") || !homeId) return;
+      if (e.target.closest("input,textarea,select,dialog,[contenteditable]:not([contenteditable='false'])") || !homeId) return;
       const item = history.present.find((i) => i.id === selected);
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
         e.preventDefault();
@@ -447,7 +454,7 @@ function PlannerHome() {
         return;
       }
       if (e.key === "Escape") setSelected("");
-      if (!item) return;
+      if (!item || item.level !== floor.level) return;
       const step = e.shiftKey ? 6 : 1,
         rot = e.shiftKey ? 90 : 15;
       const actions = {
@@ -461,7 +468,10 @@ function PlannerHome() {
         "}": () => update(item.id, { rotationDeg: item.rotationDeg + rot }),
         Delete: () => remove(item.id),
       };
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") {
+      if (e.key.toLowerCase() === "r" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        update(item.id, { rotationDeg: item.rotationDeg + rot });
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") {
         e.preventDefault();
         duplicate(item);
       } else if (actions[e.key]) {
@@ -616,7 +626,6 @@ function PlannerHome() {
   return (
     <main id="main" className="planner-page" data-panel={mobilePanel}>
       <header className="planner-header">
-        <AgentConnect clientId={clientId} />
         {snapshot.photoUrl && (
           <img
             src={snapshot.photoUrl}
@@ -632,7 +641,7 @@ function PlannerHome() {
             {snapshot.address}
           </h1>
           <p>
-            {money(snapshot.price)} ·{" "}
+            {snapshot.price ? <>{money(snapshot.price)} · </> : null}
             {inPlanMode
               ? floorPlan.houseModelSource === "sample-json" ? "Sample 3D floor plan" : "Calibrated floor plan"
               : "Estimated layout, not the real floor plan"}
@@ -720,7 +729,10 @@ function PlannerHome() {
                   calibration: result.calibration, calibratedAt: new Date().toISOString() },
               ] : asset ? p.plans : [],
             }));
-            setHistory(h => ({ ...h, past: [], future: [] }));
+            setHistory(h => {
+              const customItems = h.present.filter(p=>!p.id.startsWith("demo-item-"));
+              return { past: [], future: [], present: homeId === "demo" && converter === "sample-json" ? [...customItems, ...demoPlacements(result.houseModel, customItems)] : h.present };
+            });
             setLevel(result.houseModel.floors[0].level);
             setFullWalls(true);
             setView("3D");
@@ -915,6 +927,17 @@ function PlannerHome() {
               />
             ))}
           </Scene>
+          {items.find(item=>item.id === selected) && (() => {
+            const item = items.find(item=>item.id === selected);
+            return <div className="selected-item-actions" role="group" aria-label="Selected furniture controls">
+              <strong>{item.name}</strong>
+              <span>{item.rotationDeg || 0}°</span>
+              <button onClick={()=>update(item.id,{rotationDeg:(item.rotationDeg || 0)+15})}>Rotate</button>
+              <button onClick={()=>duplicate(item)}>Duplicate</button>
+              <button className="danger-action" onClick={()=>remove(item.id)}>Delete</button>
+              <small>R: rotate · Shift+R: 90° · Delete: remove</small>
+            </div>;
+          })()}
           <p className="canvas-estimate">
             {converted
               ? floorPlan.houseModelSource === "sample-json" ? "Synthetic sample floor plan" : "Generated from floor plan. Verify against the original."

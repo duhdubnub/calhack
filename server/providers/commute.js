@@ -42,18 +42,29 @@ export function normalizeTrip(row) {
 export function routeKey(p) {
   return [ACTORS.commute, ...[p.lat,p.lng,p.workLat,p.workLng].map(n => Number(n.toFixed(3))), p.departAt || '08:00', 'Tuesday', 'driving'];
 }
-export function createDirectionsBatch({ runner = runActor, cache = persistentMemo(join(serverDirectory, '.cache', 'commute-routes-v1.json')), fixtureMode = () => config.useFixtures, enabled = () => config.enableApify } = {}) {
+export function createDirectionsBatch({ runner = runActor, cache = persistentMemo(join(serverDirectory, '.cache', 'commute-routes-v1.json'), {cacheErrors:false}), fixtureMode = () => config.useFixtures, enabled = () => config.enableApify } = {}) {
   let waiting = [], scheduled = false;
   async function flush() {
     const pending = waiting; waiting = []; scheduled = false;
-    // One route per home; a batch has at most 12. Every run uses the shared Apify guard.
-    for (let start = 0; start < pending.length; start += 12) {
-      const group = pending.slice(start, start + 12);
-      const routes = group.map(({ p }, i) => ({ origin: `${p.lat},${p.lng}`, destination: `${p.workLat},${p.workLng}`, label: `route-${i}`, departureTime: `${nextTuesday(p.lat,p.lng).date}T${p.departAt || '08:00'}` }));
+    // Date/time apply to the entire Actor run, not individual route objects.
+    // Keep morning, evening and off-peak predictions in separate scheduled runs.
+    const schedules = new Map();
+    for (const entry of pending) {
+      const date = nextTuesday(entry.p.lat, entry.p.lng).date;
+      const time = entry.p.departAt || '08:00';
+      const key = `${date}T${time}`;
+      if (!schedules.has(key)) schedules.set(key, { date, time, entries: [] });
+      schedules.get(key).entries.push(entry);
+    }
+    for (const { date, time, entries } of schedules.values()) {
+    for (let start = 0; start < entries.length; start += 12) {
+      const group = entries.slice(start, start + 12);
+      const routes = group.map(({ p }, i) => ({ origin: `${p.lat},${p.lng}`, destination: `${p.workLat},${p.workLng}`, label: `route-${i}` }));
       try {
-        const rows = await runner(ACTORS.commute, { routes, travelModes: ['driving'], timeMode: 'depart_at', maxRoutes: 1, maxResults: routes.length, outputFormat: 'request', maxConcurrency: 2, includeSteps: false, includePolyline: false }, { limit: routes.length });
+        const rows = await runner(ACTORS.commute, { routes, travelModes: ['driving'], timeMode: 'depart_at', travelDate: date, travelTime: time, maxRoutes: 1, maxResults: routes.length, outputFormat: 'request', maxConcurrency: 2, includeSteps: false, includePolyline: false }, { limit: routes.length });
         group.forEach(({ resolve, reject }, i) => { try { const row = rows.find(r => r.label === routes[i].label); resolve({ ...normalizeTrip(row), date: nextTuesday(group[i].p.lat,group[i].p.lng).date, timezone: nextTuesday(group[i].p.lat,group[i].p.lng).timezone, usingFixtures: false }); } catch { reject(new Error('Commute data unavailable for this route')); } });
       } catch { group.forEach(({reject}) => reject(new Error('Commute provider unavailable or hourly cap reached. Try again later.'))); }
+    }
     }
   }
   return async function batch(params) {

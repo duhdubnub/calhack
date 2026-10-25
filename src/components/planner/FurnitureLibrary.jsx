@@ -11,6 +11,7 @@ export default function FurnitureLibrary({library=catalog,add,room,onLibraryEdit
           <input value={search} onChange={(e) => setSearch(e.target.value)} />
         </label>
         <div className="catalog-list">
+          {!library.some(c=>c.name.toLowerCase().includes(search.toLowerCase())) && <p>No furniture matches “{search}”. Try a different name.</p>}
           {library
             .filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
             .map((c) => (

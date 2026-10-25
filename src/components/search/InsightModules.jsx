@@ -141,7 +141,7 @@ function InsightCard({ type, listing, onData, snapshot }) {
       error: null,
     }));
     fetch(
-      "/api/insights/" + type + "?" + new URLSearchParams(JSON.parse(key)),
+      "/api/insights/" + type + "?" + new URLSearchParams({...JSON.parse(key), ...(retry ? {retry:"1"} : {})}),
       { signal: controller.signal },
     )
       .then(async (r) => {
@@ -159,7 +159,7 @@ function InsightCard({ type, listing, onData, snapshot }) {
     return () => controller.abort();
   }, [type, key, retry, missing]);
   return (
-    <article className="card insight-card">
+    <article className="card insight-card" aria-busy={state.loading || false}>
       <h3>{MODULES[type]}</h3>
       {missing ? (
         <p>Add a work address above and choose a suggestion.</p>
@@ -171,7 +171,7 @@ function InsightCard({ type, listing, onData, snapshot }) {
             </div>
           )}
           {state.error && (
-            <div role="status">
+            <div className="insight-error" role="status">
               <p>{state.error}</p>
               <button
                 className="quiet-button"
@@ -179,7 +179,7 @@ function InsightCard({ type, listing, onData, snapshot }) {
               >
                 Retry
               </button>
-              <small>Recent failures are cached for five minutes.</small>
+              <small>{state.data ? "Showing the last available result." : "Try again to request an updated result."}</small>
             </div>
           )}
           {state.data && (

@@ -9,8 +9,10 @@ export class ConversionError extends Error {}
 const worker = fileURLToPath(new URL("../python/convert.py", import.meta.url));
 export function cubicasaSettings(env = process.env) {
   const localRoot = fileURLToPath(new URL("../../data/cubicasa/", import.meta.url));
-  const dir = env.CUBICASA_DIR || path.join(localRoot,"CubiCasa5k");
-  const weights = env.CUBICASA_WEIGHTS || (dir && path.join(dir,"model_best_val_loss_var.pkl"));
+  const bundledDir = fileURLToPath(new URL("../../../floorplan/cubicasa5k/", import.meta.url));
+  const dir = env.CUBICASA_DIR || (existsSync(path.join(bundledDir, "floortrans")) ? bundledDir : path.join(localRoot,"CubiCasa5k"));
+  // model_1427.pth is the pose backbone, not the full floor-plan checkpoint.
+  const weights = env.CUBICASA_WEIGHTS || [path.join(dir,"model_best_val_loss_var.pkl"), path.join(localRoot,"CubiCasa5k","model_best_val_loss_var.pkl")].find(existsSync);
   const localPython = path.join(localRoot,".venv",process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
   return { dir, weights, python: env.CUBICASA_PYTHON || (existsSync(localPython) ? localPython : "python"),
     configured: !!dir && existsSync(path.join(dir,"floortrans")) && !!weights && existsSync(weights) };

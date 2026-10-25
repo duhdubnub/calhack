@@ -31,9 +31,9 @@ reload through existing layout storage. Limit: 200 KB, 1,000 walls, 240 openings
 
 Use **Check wall lengths** to inspect imported centerline lengths. Compare two
 known distances with the original image; interior room dimensions exclude wall
-thickness. The actual notebook files and original house image are required to
-verify the specific 17.73 px/ft result from the shared chat. Those files were
-hidden in the pasted transcript.
+thickness. The checked-in example image, notebook output and scale are now in
+`floorplan/cubicasa5k`. The `17.72972972972973` px/ft scale belongs to
+`plan1_resized.png` (1024 × 768), not the original 4000 × 3000 `fp1.jpg`.
 
 ## Convert an uploaded image or PDF
 
@@ -55,6 +55,14 @@ dimensions never scale. Single-job CPU concurrency, a 180-second deadline,
 bounded output and existing upload ownership checks apply.
 
 ## Local model setup
+
+The server now uses the source checked into `floorplan/cubicasa5k` by default.
+It reuses the existing Python environment at `server/data/cubicasa/.venv` and
+the full trained checkpoint at
+`server/data/cubicasa/CubiCasa5k/model_best_val_loss_var.pkl` when available.
+Explicit `CUBICASA_DIR`, `CUBICASA_PYTHON`, and `CUBICASA_WEIGHTS` settings
+override these defaults. The bundled `model_1427.pth` is only a pose backbone;
+it does not replace the full floor-plan checkpoint.
 
 The official source is [CubiCasa/CubiCasa5k](https://github.com/CubiCasa/CubiCasa5k).
 Download its **official pretrained weights**, linked under Evaluation in that
@@ -113,3 +121,10 @@ inference must also be checked with a real floor plan.
 
 The Python OCR smoke tests use actual Tesseract on two generated rooms and a
 blank image: `python server/floorplan/python/test_scale.py`.
+
+The bundled source was also verified through the real upload and conversion API
+using `plan1_resized.png` and its supplied scale: 61 wall segments, 8 doors and
+10 windows, with geometry converted to inches at 1.4774774774774775 px/in.
+Automatic OCR scale was rejected on the original example; it requires manual
+calibration for this input. These counts verify execution and schema integration,
+not the accuracy of every detected segment or opening.

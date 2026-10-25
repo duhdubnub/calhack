@@ -481,6 +481,14 @@
   padding: 20px;
   overflow-wrap: anywhere;
 }
+.insight-error {
+  padding: 14px; border: 1px solid #eadbd0; border-radius: 10px;
+  background: #fffaf5; font-size: 13px;
+}
+.insight-error small { display: block; color: var(--muted); margin-top: 8px; }
+.insight-error button { min-height: 38px; }
+.module-skeleton { font-size: 13px; border-radius: 8px; }
+@media (max-width: 640px) { .insight-grid { grid-template-columns: minmax(0, 1fr); } }
 .insight-card h3 {
   margin-bottom: 12px;
 }

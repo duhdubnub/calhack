@@ -340,11 +340,12 @@ export default function FloorPlanPanel({
               title="Detect walls, doors and windows. Printed dimensions can set the scale automatically; you can also calibrate it yourself."
             >
               {converting
-                ? "Converting…"
+                ? "Analyzing floorplan…"
                 : available
                   ? "Convert to 3D"
                   : "Convert to 3D · Coming soon"}
             </button>
+            {converting && <p className="conversion-progress" role="status">Detecting walls, doors and windows. This can take up to three minutes.</p>}
           </article>
         );
       })}

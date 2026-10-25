@@ -222,7 +222,3 @@ npm run probe:autocomplete -- --all
 The probe prints safe provider results and Census verification; it does not run RentCast or Apify. See [provider findings](docs/providers.md#address-search-and-autocomplete) for measured limitations and thresholds.
 
 Fixture demos: `5101 Trail West Dr` → active sample; `100 Pending St` / `200 Sold St` → no property details; `147 Midway Ln` → two sample cities; `999 Unknown Street` → not found. Sample candidate addresses and property values are illustrative, not current market claims. Address lookups remain offline in fixture mode. Autocomplete uses saved examples and falls back to live public geocoding for other queries, as requested; unmatched queries may therefore need network access.
-# ASI:One / Agentverse assistant
-
-Setup, ACP registration, conversation demo, offline tests, and the pending SAM 3D
-integration are documented in [agents/propertylens/README.md](agents/propertylens/README.md).

@@ -1,5 +1,6 @@
 import PlanFloor from "./PlanFloor";
 import DetectedWalls from "./DetectedWalls";
+import SurfaceMaterial, { floorMaterial } from "./SurfaceMaterial";
 import React, { useEffect, useRef } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import {
@@ -17,15 +18,15 @@ const roomColors = {
   hallway: "#eee9df",
   dining: "#eaddce",
 };
-export function Box({ position, size, color, ...props }) {
+export function Box({ position, size, color, materialId, ...props }) {
   return (
     <mesh position={position} {...props}>
       <boxGeometry args={size} />
-      <meshStandardMaterial
+      {materialId ? <SurfaceMaterial materialId={materialId} size={size} fallback={color} /> : <meshStandardMaterial
         color={color}
         transparent={color === "#a9d5e3"}
         opacity={color === "#a9d5e3" ? 0.5 : 1}
-      />
+      />}
     </mesh>
   );
 }
@@ -134,6 +135,7 @@ function Wall({ room, edge, floor, height }) {
           }
           size={horizontal ? [(b - a) / 12, h, 0.12] : [0.12, h, (b - a) / 12]}
           color={color}
+          materialId={color === "#a9d5e3" ? undefined : "plaster_beige"}
         />,
       );
   };
@@ -218,6 +220,7 @@ function Content({
             ]}
             size={[room.widthIn / 12, 0.08, room.depthIn / 12]}
             color={roomColors[room.type]}
+            materialId={view === "3D" ? floorMaterial(room) : undefined}
             onClick={onEmpty}
             receiveShadow
           />
@@ -244,7 +247,7 @@ function Content({
         </group>
       ))}
       {floor.walls && <DetectedWalls walls={floor.walls} heightIn={view === "2D" ? 1.8 : fullWalls ? ceilingHeightIn : 14.4} />}
-      {planUrl&&<PlanFloor url={planUrl} floor={floor} rotationDeg={planRotation} opacity={planOpacity}/> }
+      {planUrl&&view === "2D"&&<PlanFloor url={planUrl} floor={floor} rotationDeg={planRotation} opacity={planOpacity}/> }
       {children}
     </>
   );

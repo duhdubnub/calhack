@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Box } from "./Scene";
@@ -21,6 +21,14 @@ export default function FurnitureModel({
     d = item.depthIn / 12,
     h = item.heightIn / 12,
     color = warning ? "#cf5550" : item.colorOverride || item.color;
+  useEffect(() => () => { if (drag.current && controls) controls.enabled = true; }, [controls]);
+  const outline = useMemo(() => {
+    const box = new THREE.BoxGeometry(w + 0.12, h + 0.12, d + 0.12);
+    const edges = new THREE.EdgesGeometry(box);
+    box.dispose();
+    return edges;
+  }, [w, h, d]);
+  useEffect(() => () => outline.dispose(), [outline]);
   const box = (x, y, z, a, b, c, tint = color) => (
     <Box
       position={[x, y, z]}
@@ -57,7 +65,7 @@ export default function FurnitureModel({
     drag.current = null;
     if (controls) controls.enabled = true;
     e.target.releasePointerCapture?.(e.pointerId);
-    onMove(p);
+    if (Math.abs(p.xIn-item.xIn)>0.01 || Math.abs(p.zIn-item.zIn)>0.01) onMove(p);
   }
   return (
     <group
@@ -141,10 +149,9 @@ export default function FurnitureModel({
         </>
       )}
       {selected && (
-        <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[w + 0.2, d + 0.2]} />
-          <meshBasicMaterial color="#e4aa33" wireframe />
-        </mesh>
+        <lineSegments position={[0, h/2, 0]} geometry={outline} raycast={()=>null}>
+          <lineBasicMaterial color="#246653" depthTest={false} transparent opacity={0.85} />
+        </lineSegments>
       )}
     </group>
   );

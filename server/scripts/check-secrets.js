@@ -4,7 +4,14 @@ import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { config } from "../config.js";
 
-const git = (...args) => execFileSync("git", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+const git = (...args) => {
+  try {
+    return execFileSync("git", args, { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 });
+  } catch {
+    // Child-process errors can embed stdout, which may contain a credential.
+    throw new Error("Git secret scan could not complete. Check Git access and file sizes before committing.");
+  }
+};
 const files = git("ls-files", "-z").split("\0").filter(Boolean);
 const forbidden = files.filter(
   (file) => /(^|\/)\.env(?:\.|$)/.test(file) && file !== "server/.env.example",
@@ -17,10 +24,7 @@ const secrets = [
   config.apiKey,
   config.apifyToken,
   process.env.OPENAI_API_KEY,
-  process.env.ASI1_API_KEY,
-  process.env.AGENT_SEED,
-  process.env.AGENT_BRIDGE_TOKEN,
-  process.env.AGENTVERSE_KEY,
+  ...Object.entries(process.env).filter(([key]) => /(?:KEY|TOKEN|SEED)$/.test(key)).map(([,value]) => value),
 ].filter(
   (value) => value && !value.startsWith('replace_') && !["your_key_here", "your_token_here"].includes(value),
 );
