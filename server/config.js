@@ -11,4 +11,9 @@ export const config = {
   useFixtures: process.env.USE_FIXTURES === "true",
   ikeaLiveSearch: process.env.IKEA_LIVE_SEARCH === "true",
   port: Number(process.env.PORT) || 3001,
+  host: process.env.HOST || "127.0.0.1",
+  corsOrigins: (process.env.CORS_ORIGIN || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
 };

@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: calhack-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev
+    startCommand: npm run start:server
+    healthCheckPath: /api/search/config
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: HOST
+        value: 0.0.0.0
+      - key: CORS_ORIGIN
+        value: https://duhdubnub.github.io
+      - key: USE_FIXTURES
+        value: "false"
+      - key: ENABLE_APIFY
+        value: "true"
+      - key: RENTCAST_API_KEY
+        sync: false
+      - key: APIFY_TOKEN
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEOAPIFY_API_KEY
+        sync: false

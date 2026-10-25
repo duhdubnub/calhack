@@ -43,10 +43,10 @@ else if (
   );
 const server = createApp(undefined, { autocomplete, enrich }).listen(
   config.port,
-  "127.0.0.1",
+  config.host,
   () => {
     console.log(
-      `Property API: http://127.0.0.1:${config.port} (${config.useFixtures ? "saved fixtures; no quota used" : "live providers with one-hour sale-status cache"})`,
+      `Property API: http://${config.host}:${config.port} (${config.useFixtures ? "saved fixtures; no quota used" : "live providers with one-hour sale-status cache"})`,
     );
   },
 );

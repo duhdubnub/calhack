@@ -1,6 +1,7 @@
+import { API } from "../api";
 import { useEffect, useRef, useState } from "react";
 import { readSession, writeSession } from "./listingSnapshot";
-const base = "/api/planner/floorplan",
+const base = API + "/planner/floorplan",
   starts = new Map();
 export async function floorPlanApi(client, path, options = {}) {
   const r = await fetch(base + path, {

@@ -29,6 +29,8 @@ jobs:
         run: npm ci
       - name: Build site
         run: npm run build
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
       - name: Preserve client-side routes on Pages
         run: cp dist/index.html dist/404.html
       - name: Set up Pages

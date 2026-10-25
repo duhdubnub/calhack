@@ -1,3 +1,4 @@
+import { API } from "../../lib/api";
 import React, { useEffect, useRef, useState } from "react";
 import { usePreferences, MODULES } from "../../lib/Preferences";
 import { num } from "./ListingGrid";
@@ -141,7 +142,7 @@ function InsightCard({ type, listing, onData, snapshot }) {
       error: null,
     }));
     fetch(
-      "/api/insights/" + type + "?" + new URLSearchParams({...JSON.parse(key), ...(retry ? {retry:"1"} : {})}),
+      API + "/insights/" + type + "?" + new URLSearchParams({...JSON.parse(key), ...(retry ? {retry:"1"} : {})}),
       { signal: controller.signal },
     )
       .then(async (r) => {

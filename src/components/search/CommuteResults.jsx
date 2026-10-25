@@ -1,3 +1,4 @@
+import { API } from '../../lib/api';
 import React, { useState } from 'react';
 import ListingGrid from './ListingGrid';
 import Pagination, { usePagination } from './Pagination';
@@ -15,7 +16,7 @@ export default function CommuteResults({ data, listings, onUpdate, clientId, ...
   async function more() {
     setBusy(true); setError('');
     try {
-      const r = await fetch('/api/search/commute-more', { method:'POST', headers:{'Content-Type':'application/json','X-Client-Id':clientId}, body:JSON.stringify({token:c.token}) });
+      const r = await fetch(API + '/search/commute-more', { method:'POST', headers:{'Content-Type':'application/json','X-Client-Id':clientId}, body:JSON.stringify({token:c.token}) });
       const j = await r.json(); if (!r.ok) throw new Error(j.error?.message || 'Could not check more homes.'); onUpdate(j);
     } catch(e) { setError(e.message); } finally { setBusy(false); }
   }

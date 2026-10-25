@@ -38,6 +38,19 @@ export function createApp(
 ) {
   const app = express();
   app.disable("x-powered-by");
+  if (config.corsOrigins.length)
+    app.use("/api", (req, res, next) => {
+      const origin = req.get("Origin");
+      if (origin && config.corsOrigins.includes(origin)) {
+        res.set("Access-Control-Allow-Origin", origin);
+        res.set("Vary", "Origin");
+        res.set("Access-Control-Allow-Headers", "Content-Type, X-Client-Id");
+        res.set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE");
+        res.set("Access-Control-Max-Age", "600");
+      }
+      if (req.method === "OPTIONS") return res.sendStatus(204);
+      next();
+    });
   app.use(express.json({ limit: "200kb" }));
   app.use("/api/planner/floorplan", createFloorPlanRouter());
   app.use("/api/favorites", favoritesRouter);

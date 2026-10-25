@@ -1,3 +1,4 @@
+import { API } from "../lib/api";
 import { shouldRetryAddress, shouldRetryDescription, addressRetryText } from "../lib/search/intent";
 import { exactAddress, addressLabel, sameHome } from "../lib/search/address";
 import AddressResults from "../components/search/AddressResults";
@@ -102,7 +103,7 @@ export default function Home({ addressOnly = false }) {
     setError("");
     setApplied(c);
     try {
-      const r = await fetch(extras ? "/api/search/described" : "/api/search", {
+      const r = await fetch(API + (extras ? "/search/described" : "/search"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -144,7 +145,7 @@ export default function Home({ addressOnly = false }) {
       data?.listings?.find((p) => p.lat != null && p.lng != null) ||
       work;
     try {
-      const r = await fetch("/api/search/address", {
+      const r = await fetch(API + "/search/address", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -161,7 +162,7 @@ export default function Home({ addressOnly = false }) {
         value.text &&
         !value.safetyRetried && shouldRetryDescription(value.text)
       ) {
-        const response = await fetch("/api/search/parse", {
+        const response = await fetch(API + "/search/parse", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -210,7 +211,7 @@ export default function Home({ addressOnly = false }) {
       .filter((p) => !p.photoUrl)
       .slice(0, 6)) {
       fetch(
-        "/api/enrich?" +
+        API + "/enrich?" +
           new URLSearchParams({
             address: addressLabel({ ...p, line1: p.address }),
           }),

@@ -1,3 +1,4 @@
+import { API } from "./api";
 import { useEffect, useState } from "react";
 
 export default function useEnrichment(property) {
@@ -15,7 +16,7 @@ export default function useEnrichment(property) {
     async function load() {
       try {
         const response = await fetch(
-          `/api/enrich?${new URLSearchParams({ address })}`,
+          `${API}/enrich?${new URLSearchParams({ address })}`,
           { signal: controller.signal },
         );
         if (!response.ok) throw new Error("Unavailable");

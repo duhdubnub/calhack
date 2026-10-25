@@ -1,3 +1,4 @@
+import { API } from "../lib/api";
 import React, { useEffect, useId, useRef, useState, useReducer } from "react";
 import { comboboxReducer, initialCombobox, inputPrivacy } from "../lib/search/combobox";
 import { fastSuggestion } from "../lib/search/suggestions";
@@ -60,7 +61,7 @@ export default function AddressCombobox({
           params.set("lat", bias.lat);
           params.set("lng", bias.lng);
         }
-        const r = await fetch("/api/autocomplete?" + params, {
+        const r = await fetch(API + "/autocomplete?" + params, {
             signal: controller.signal,
             headers: { "X-Client-Id": clientId },
           }),
@@ -83,7 +84,7 @@ export default function AddressCombobox({
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const r = await fetch("/api/autocomplete/verify", {
+        const r = await fetch(API + "/autocomplete/verify", {
           method: "POST", headers: { "Content-Type": "application/json", "X-Client-Id": clientId },
           body: JSON.stringify({ suggestions: items.slice(0, 3) }), signal: controller.signal,
         });

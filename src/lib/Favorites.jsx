@@ -1,3 +1,4 @@
+import { API } from "./api";
 import React, {
   createContext,
   useContext,
@@ -25,7 +26,7 @@ export function FavoritesProvider({ children }) {
     }
   });
   async function api(path = "", options = {}) {
-    const r = await fetch("/api/favorites" + path, {
+    const r = await fetch(API + "/favorites" + path, {
       ...options,
       headers: { "X-Client-Id": id, "Content-Type": "application/json" },
     });

@@ -1,3 +1,4 @@
+import { API } from "../../lib/api";
 import AddressCombobox from "../AddressCombobox";
 import React, { useEffect, useRef, useState } from "react";
 import { EXAMPLES, interpretationFor } from "../../../server/search/nlParser";
@@ -52,7 +53,7 @@ export default function DescribeSearch({
       criteria.location || localRead("propertylens.lastLocation", ""),
     );
   useEffect(() => {
-    fetch("/api/search/config")
+    fetch(API + "/search/config")
       .then((r) => r.json())
       .then((v) => setConfigured(v.openaiConfigured === true))
       .catch(() => {});
@@ -94,7 +95,7 @@ export default function DescribeSearch({
     setRecent(history);
     localWrite("propertylens.recentSearches", history);
     try {
-      const r = await fetch("/api/search/parse", {
+      const r = await fetch(API + "/search/parse", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Client-Id": id },
         body: JSON.stringify({
@@ -127,7 +128,7 @@ export default function DescribeSearch({
     setParsing(true);
     setUnderstanding(true);
     try {
-      const r = await fetch("/api/search/resolve", {
+      const r = await fetch(API + "/search/resolve", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Client-Id": id },
         body: JSON.stringify({
